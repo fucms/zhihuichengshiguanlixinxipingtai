@@ -57,7 +57,7 @@ export const constantRoutes = [
         // component: () => import("@/views/dashboard/index"),
         component: () => import('@/views/alh_superviseAndHandle/duban/index.vue'),
         name: 'Dashboard',
-        meta: { title: '我的案卷', icon: 'el-icon-s-home', affix: true }
+        meta: { title: '智慧城市管理信息平台', icon: 'el-icon-s-home', affix: true }
       }
     ]
   },
