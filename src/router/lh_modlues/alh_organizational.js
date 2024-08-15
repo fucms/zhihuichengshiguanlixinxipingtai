@@ -1,24 +1,36 @@
-import Layout from "@/layout";
+import Layout from '@/layout'
 
 const organizationalRouter = {
-  path: "/organizational",
+  path: '/organizational',
   component: Layout,
-  redirect: "/alh_organizational/index",
-  meta: { title: "督办案件", icon: "el-icon-s-check" },
+  redirect: '/alh_organizational/index',
+  meta: { title: '监督指挥子系统', icon: 'el-icon-s-check' },
   children: [
     {
-      path: "alh_organizational",
-      component: () => import("@/views/alh_organizational/ywdb/index.vue"),
-      name: "alh_organizational",
-      meta: { title: "业务督办箱" },
+      path: 'alh_organizational',
+      component: () => import('@/views/alh_organizational/ywdb/index.vue'),
+      name: 'alh_organizational',
+      meta: { title: '城市监督管理员实时监控' }
     },
     {
-      path: "alh_roulel",
-      component: () => import("@/views/alh_organizational/roule/index.vue"),
-      name: "alh_roulel",
-      meta: { title: "角色授权" },
+      path: 'alh_dianzimap',
+      component: () => import('@/views/alh_dianzimap/index.vue'),
+      name: 'alh_dianzimap',
+      meta: { title: '电子地图' }
     },
-  ],
-};
+    {
+      path: 'alh_roulel',
+      component: () => import('@/views/alh_organizational/roule/index.vue'),
+      name: 'alh_roulel',
+      meta: { title: '统计分析' }
+    },
+    {
+      path: 'alh_roulel',
+      component: () => import('@/views/alh_organizational/roule/index.vue'),
+      name: 'alh_roulel',
+      meta: { title: '大屏展示' }
+    }
+  ]
+}
 
-export default organizationalRouter;
+export default organizationalRouter

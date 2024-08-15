@@ -1,10 +1,10 @@
-import Layout from "@/layout";
+import Layout from '@/layout'
 
 const superviseAndHandleRouter = {
-  path: "/superviseAndHandle",
+  path: '/superviseAndHandle',
   component: Layout,
-  redirect: "/alh_superviseAndHandle/proccess/index",
-  meta: { title: "督办案件", icon: "el-icon-s-check" },
+  redirect: '/alh_superviseAndHandle/proccess/index',
+  meta: { title: '监督数据无线采集子系统', icon: 'el-icon-s-check' },
   children: [
     // {
     //   path: "duban",
@@ -13,19 +13,19 @@ const superviseAndHandleRouter = {
     //   meta: { title: "业务督办箱" },
     // },
     {
-      path: "proccess",
+      path: 'proccess',
       component: () =>
-        import("@/views/alh_superviseAndHandle/proccess/index.vue"),
-      name: "proccess",
-      meta: { title: "业务审批箱" },
+        import('@/views/alh_superviseAndHandle/proccess/index.vue'),
+      name: 'proccess',
+      meta: { title: '服务器端' }
     },
     {
-      path: "spacetext",
-      component: () => import("@/views/alh_superviseAndHandle/text/index.vue"),
-      name: "spacetext",
-      meta: { title: "问题案卷库" },
-    },
-  ],
-};
+      path: 'spacetext',
+      component: () => import('@/views/alh_superviseAndHandle/text/index.vue'),
+      name: 'spacetext',
+      meta: { title: '城管通终端' }
+    }
+  ]
+}
 
-export default superviseAndHandleRouter;
+export default superviseAndHandleRouter
