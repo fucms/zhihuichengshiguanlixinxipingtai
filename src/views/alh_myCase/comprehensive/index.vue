@@ -1,159 +1,148 @@
 <template>
-    <div class="app-container">
-        <div class="filter-container">
-            <!-- <el-input v-model="listQuery.filter" style="width: 200px" class="filter-item"
-                @keyup.enter.native="handleFilter" /> -->
-            <el-form :inline="true" :model="listQuery" class="demo-form-inline">
-                <el-form-item label="案卷编号">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷编号"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷名称">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷名称"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷来源">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷来源"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-                        搜索
-                    </el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-plus"
-                        @click="handleCreate">新增</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-bottom"
-                        @click="handleImport">导入</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-top"
-                        @click="handleDownload">导出</el-button>
-                </el-form-item>
-            </el-form>
-
-
-            <el-table :key="tableKey" v-loading="listLoading" :data="list" border fit highlight-current-row
-                style="width: 100%">
-                <el-table-column label="案卷编号" prop="index" align="center" min-width="50">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.index }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷名称" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷来源" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="大类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="小类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷状态" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷描述" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-
-                <el-table-column label="操作" align="center" min-width="120">
-                    <template slot-scope="{ row }">
-                        <el-button type="primary" size="mini">详情</el-button>
-                        <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
-                        <el-button size="mini" type="danger" @click="handleDelete(row)">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-
-            <!-- 分页 -->
-            <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
-                @pagination="getList" />
-            <!-- 导入 -->
-            <UploadDownExcel ref="UploadDownExcel" :href="href" :down-load-text="downLoadText"
-                @uploadTableList="uploadTableList" />
-            <!-- 新增 -->
-            <Create ref="create" />
-            <!-- 编辑 -->
-            <Edit ref="edit" />
-        </div>
-    </div>
+  <div class="timing-management">
+    <el-card>
+      <el-row>
+        <el-col :span="24">
+          <el-table :data="caseList" style="width: 100%">
+            <el-table-column prop="caseId" label="案卷编号" width="180" />
+            <el-table-column prop="caseName" label="案卷名称" width="250" />
+            <el-table-column prop="currentStage" label="当前阶段" width="150" />
+            <el-table-column prop="timeLimit" label="办理时限" width="150">
+              <template slot-scope="scope">
+                <span :class="getStatusClass(scope.row.remainingTime)">
+                  {{ scope.row.timeLimit }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="remainingTime" label="剩余时间" width="150">
+              <template slot-scope="scope">
+                <span :class="getStatusClass(scope.row.remainingTime)">
+                  {{ scope.row.remainingTime }} 小时
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" width="100">
+              <template slot-scope="scope">
+                <el-tag :type="getStatusType(scope.row.remainingTime)">
+                  {{ getStatusText(scope.row.remainingTime) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="120">
+              <template slot-scope="scope">
+                <el-button type="primary" size="small" @click="催办(scope.row)">
+                  催办
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-col>
+      </el-row>
+    </el-card>
+  </div>
 </template>
 
 <script>
-import { getList } from '@/api/aboutDocument'
-import Pagination from '@/components/Pagination'
-import UploadDownExcel from '@/components/UploadDownExcel/index.vue'
-import Create from './components/create.vue'
-import Edit from './components/edit.vue'
-import { levelTypeColor, customerStatusColor } from '@/filters/components/customerType'
 export default {
-    components: {
-        Pagination,
-        UploadDownExcel,
-        Create,
-        Edit,
-    },
-    data() {
-        return {
-            tableKey: 0,
-            list: [],
-            listLoading: true,
-            listQuery: {
-                page: 1,
-                limit: 10,
-                filter: ''
-            },
-            total: 0,
-            href: '/template/默认文件.xlsx',
-            downLoadText: '默认文件.xlsx'
+  data() {
+    return {
+      caseList: [
+        {
+          caseId: '20230901001',
+          caseName: '市政道路维修',
+          currentStage: '审批中',
+          timeLimit: 48,
+          remainingTime: 36
+        },
+        {
+          caseId: '20230901002',
+          caseName: '园区绿化改造',
+          currentStage: '办理中',
+          timeLimit: 24,
+          remainingTime: 5
+        },
+        {
+          caseId: '20230901003',
+          caseName: '违建拆除',
+          currentStage: '已派遣',
+          timeLimit: 72,
+          remainingTime: -2
+        },
+        {
+          caseId: '20230901004',
+          caseName: '市政道路维修',
+          currentStage: '审批中',
+          timeLimit: 48,
+          remainingTime: 36
+        },
+        {
+          caseId: '20230901005',
+          caseName: '园区绿化改造',
+          currentStage: '办理中',
+          timeLimit: 24,
+          remainingTime: 5
+        },
+        {
+          caseId: '20230901006',
+          caseName: '违建拆除',
+          currentStage: '已派遣',
+          timeLimit: 72,
+          remainingTime: -2
         }
-    },
-    computed: {},
-    mounted() {
-        this.getList()
-    },
-    methods: {
-        getList() {
-            this.listLoading = true
-            getList().then(res => {
-                this.list = res.items.map((item, index) => {
-                    item.levelTypeColor = levelTypeColor(item.level)
-                    item.customerStatusColor = customerStatusColor(item.status)
-                    return {
-                        ...item,
-                        index: index + 1
-                    }
-                })
-                this.total = res.total
-                this.listLoading = false
-            })
-        },
-        handleFilter() { },
-        // 导入组件弹出
-        handleImport() {
-            this.$refs.UploadDownExcel.show()
-        },
-        // 导入文件
-        uploadTableList(val) { },
-        handleCreate() {
-            this.$refs.create.show()
-        },
-        handleUpdate(val) {
-            this.$refs.edit.show(val)
-        },
-        handleDelete() { },
-        handleDownload() { },
+      ]
     }
+  },
+  methods: {
+    getStatusClass(remainingTime) {
+      if (remainingTime > 24) {
+        return 'green-text'
+      } else if (remainingTime > 0 && remainingTime <= 24) {
+        return 'yellow-text'
+      } else {
+        return 'red-text'
+      }
+    },
+    getStatusType(remainingTime) {
+      if (remainingTime > 24) {
+        return 'success'
+      } else if (remainingTime > 0 && remainingTime <= 24) {
+        return 'warning'
+      } else {
+        return 'danger'
+      }
+    },
+    getStatusText(remainingTime) {
+      if (remainingTime > 24) {
+        return '正常'
+      } else if (remainingTime > 0 && remainingTime <= 24) {
+        return '即将到期'
+      } else {
+        return '超期'
+      }
+    },
+    催办(row) {
+      this.$message({
+        message: `已对案卷 ${row.caseName} 进行催办通知！`,
+        type: 'warning'
+      })
+    }
+  }
 }
 </script>
 
-<style lang="less" scoped></style>
+  <style scoped>
+  .timing-management{
+    margin: 20px;
+  }
+  .green-text {
+    color: green;
+  }
+
+  .yellow-text {
+    color: orange;
+  }
+
+  .red-text {
+    color: red;
+  }
+  </style>

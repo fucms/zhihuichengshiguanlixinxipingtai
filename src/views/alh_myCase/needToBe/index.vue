@@ -1,159 +1,124 @@
 <template>
-    <div class="app-container">
-        <div class="filter-container">
-            <!-- <el-input v-model="listQuery.filter" style="width: 200px" class="filter-item"
-                @keyup.enter.native="handleFilter" /> -->
-            <el-form :inline="true" :model="listQuery" class="demo-form-inline">
-                <el-form-item label="案卷编号">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷编号"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷名称">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷名称"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷来源">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷来源"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-                        搜索
-                    </el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-plus"
-                        @click="handleCreate">新增</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-bottom"
-                        @click="handleImport">导入</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-top"
-                        @click="handleDownload">导出</el-button>
-                </el-form-item>
-            </el-form>
+  <div class="case-handling">
+    <el-card>
 
+      <!-- 案卷基本信息展示 -->
+      <el-form :model="caseInfo" label-width="120px">
+        <el-form-item label="案卷编号">
+          <el-input v-model="caseInfo.id" disabled />
+        </el-form-item>
+        <el-form-item label="案卷名称">
+          <el-input v-model="caseInfo.name" disabled />
+        </el-form-item>
+        <el-form-item label="案卷来源">
+          <el-input v-model="caseInfo.source" disabled />
+        </el-form-item>
+        <el-form-item label="大类">
+          <el-input v-model="caseInfo.majorCategory" disabled />
+        </el-form-item>
+        <el-form-item label="小类">
+          <el-input v-model="caseInfo.minorCategory" disabled />
+        </el-form-item>
+        <el-form-item label="案卷状态">
+          <el-input v-model="caseInfo.status" disabled />
+        </el-form-item>
+        <el-form-item label="案卷描述">
+          <el-input v-model="caseInfo.description" type="textarea" disabled />
+        </el-form-item>
+      </el-form>
 
-            <el-table :key="tableKey" v-loading="listLoading" :data="list" border fit highlight-current-row
-                style="width: 100%">
-                <el-table-column label="案卷编号" prop="index" align="center" min-width="50">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.index }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷名称" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷来源" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="大类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="小类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷状态" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷描述" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
+      <!-- 办理表单 -->
+      <el-form :model="handlingInfo" label-width="120px" style="margin-top: 20px;">
+        <el-form-item label="办理意见">
+          <el-input v-model="handlingInfo.comments" type="textarea" />
+        </el-form-item>
+        <el-form-item label="办理情况">
+          <el-input v-model="handlingInfo.status" type="textarea" />
+        </el-form-item>
+      </el-form>
 
-                <el-table-column label="操作" align="center" min-width="120">
-                    <template slot-scope="{ row }">
-                        <el-button type="primary" size="mini">详情</el-button>
-                        <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
-                        <el-button size="mini" type="danger" @click="handleDelete(row)">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+      <!-- 操作按钮 -->
+      <el-row :gutter="20" style="margin-top: 20px;" type="flex" justify="center">
+        <el-col :span="5">
+          <el-button type="primary" @click="queryLocation">位置查询</el-button>
+        </el-col>
+        <el-col :span="5">
+          <el-button type="primary" @click="printCaseInfo">打印案卷信息</el-button>
+        </el-col>
+        <el-col :span="5">
+          <el-button type="success" @click="submitHandlingInfo">提交办理信息</el-button>
+        </el-col>
+      </el-row>
+    </el-card>
 
-            <!-- 分页 -->
-            <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
-                @pagination="getList" />
-            <!-- 导入 -->
-            <UploadDownExcel ref="UploadDownExcel" :href="href" :down-load-text="downLoadText"
-                @uploadTableList="uploadTableList" />
-            <!-- 新增 -->
-            <Create ref="create" />
-            <!-- 编辑 -->
-            <Edit ref="edit" />
-        </div>
-    </div>
+    <!-- 位置查询对话框 -->
+    <el-dialog title="位置查询" :visible.sync="locationDialogVisible">
+      <div>
+        <!-- 这里可以集成地图组件，展示位置查询 -->
+        <p>位置查询功能尚未实现。</p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="locationDialogVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
-import { getList } from '@/api/aboutDocument'
-import Pagination from '@/components/Pagination'
-import UploadDownExcel from '@/components/UploadDownExcel/index.vue'
-import Create from './components/create.vue'
-import Edit from './components/edit.vue'
-import { levelTypeColor, customerStatusColor } from '@/filters/components/customerType'
 export default {
-    components: {
-        Pagination,
-        UploadDownExcel,
-        Create,
-        Edit,
-    },
-    data() {
-        return {
-            tableKey: 0,
-            list: [],
-            listLoading: true,
-            listQuery: {
-                page: 1,
-                limit: 10,
-                filter: ''
-            },
-            total: 0,
-            href: '/template/默认文件.xlsx',
-            downLoadText: '默认文件.xlsx'
-        }
-    },
-    computed: {},
-    mounted() {
-        this.getList()
-    },
-    methods: {
-        getList() {
-            this.listLoading = true
-            getList().then(res => {
-                this.list = res.items.map((item, index) => {
-                    item.levelTypeColor = levelTypeColor(item.level)
-                    item.customerStatusColor = customerStatusColor(item.status)
-                    return {
-                        ...item,
-                        index: index + 1
-                    }
-                })
-                this.total = res.total
-                this.listLoading = false
-            })
-        },
-        handleFilter() { },
-        // 导入组件弹出
-        handleImport() {
-            this.$refs.UploadDownExcel.show()
-        },
-        // 导入文件
-        uploadTableList(val) { },
-        handleCreate() {
-            this.$refs.create.show()
-        },
-        handleUpdate(val) {
-            this.$refs.edit.show(val)
-        },
-        handleDelete() { },
-        handleDownload() { },
+  data() {
+    return {
+      // 案卷基本信息
+      caseInfo: {
+        id: '2024001',
+        name: '路面修复',
+        source: '市民举报',
+        majorCategory: '基础设施',
+        minorCategory: '道路维护',
+        status: '待处理',
+        description: '该路段存在严重的坑洼现象，影响交通安全。'
+      },
+      // 办理信息
+      handlingInfo: {
+        comments: '',
+        status: ''
+      },
+      locationDialogVisible: false
     }
+  },
+  methods: {
+    queryLocation() {
+      this.locationDialogVisible = true
+    },
+    printCaseInfo() {
+      window.print()
+    },
+    submitHandlingInfo() {
+      console.log('提交办理信息:', this.handlingInfo)
+      this.$message.success('办理信息提交成功')
+    }
+  }
 }
 </script>
 
-<style lang="less" scoped></style>
+  <style scoped>
+  .case-handling {
+    padding: 20px;
+  }
+
+  .el-card {
+    width: 100%;
+  }
+
+  .el-form {
+    margin-bottom: 20px;
+  }
+
+  .el-row {
+    margin-top: 20px;
+  }
+
+  .el-dialog {
+    text-align: center;
+  }
+  </style>

@@ -17,7 +17,7 @@ const alh_myCaseRouter = {
       component: () =>
         import('@/views/alh_myCase/myCase/index.vue'),
       name: 'myCase',
-      meta: { title: '亲卷派遣' }
+      meta: { title: '案卷派遣' }
     },
     {
       path: 'ruleCase',
@@ -32,21 +32,21 @@ const alh_myCaseRouter = {
       meta: { title: '计时管理' }
     },
     {
-      path: 'comprehensive',
-      component: () => import('@/views/alh_myCase/comprehensive/index.vue'),
-      name: 'comprehensive',
+      path: 'caseWork',
+      component: () => import('@/views/alh_myCase/caseWork/index.vue'),
+      name: 'caseWork',
       meta: { title: '案卷督办' }
     },
     {
-      path: 'comprehensive',
-      component: () => import('@/views/alh_myCase/comprehensive/index.vue'),
-      name: 'comprehensive',
+      path: 'Infotip',
+      component: () => import('@/views/alh_myCase/Infotip/index.vue'),
+      name: 'Infotip',
       meta: { title: '信息提示' }
     },
     {
-      path: 'comprehensive',
-      component: () => import('@/views/alh_myCase/comprehensive/index.vue'),
-      name: 'comprehensive',
+      path: 'processView',
+      component: () => import('@/views/alh_myCase/processView/index.vue'),
+      name: 'processView',
       meta: { title: '流程查看' }
     }
   ]

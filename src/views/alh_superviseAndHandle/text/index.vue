@@ -1,159 +1,178 @@
 <template>
-    <div class="app-container">
-        <div class="filter-container">
-            <!-- <el-input v-model="listQuery.filter" style="width: 200px" class="filter-item"
-                @keyup.enter.native="handleFilter" /> -->
-            <el-form :inline="true" :model="listQuery" class="demo-form-inline">
-                <el-form-item label="案卷编号">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷编号"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷名称">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷名称"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷来源">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷来源"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-                        搜索
-                    </el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-plus"
-                        @click="handleCreate">新增</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-bottom"
-                        @click="handleImport">导入</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-top"
-                        @click="handleDownload">导出</el-button>
-                </el-form-item>
-            </el-form>
+  <div class="city-management">
+    <el-tabs v-model="activeTab" type="card">
+      <!-- 问题上报 -->
+      <el-tab-pane label="问题上报" name="report">
+        <el-form :model="reportForm" label-width="120px">
+          <el-form-item label="事件类型">
+            <el-select v-model="reportForm.type" placeholder="选择类型">
+              <el-option label="类型1" value="type1" />
+              <el-option label="类型2" value="type2" />
+            </el-select>
+            <el-select v-model="reportForm.subType" placeholder="选择子类型">
+              <el-option label="子类型1" value="subType1" />
+              <el-option label="子类型2" value="subType2" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="地图选择">
+            <el-button type="primary" @click="openMap">选择位置</el-button>
+            <span>{{ reportForm.location }}</span>
+          </el-form-item>
+          <el-form-item label="选择照片">
+            <el-upload
+              class="upload-demo"
+              drag
+              action="#"
+              :on-change="handlePhotoChange"
+              :show-file-list="false"
+            >
+              <i class="el-icon-upload" />
+              <div class="el-upload__text">将照片拖到此处，或<em>点击上传</em></div>
+            </el-upload>
+            <el-image
+              v-if="reportForm.photo"
+              :src="reportForm.photo"
+              fit="cover"
+              style="width: 100px; height: 100px; margin-top: 10px;"
+            />
+          </el-form-item>
+          <el-form-item label="声音选择">
+            <el-upload
+              class="upload-demo"
+              drag
+              action="#"
+              :on-change="handleAudioChange"
+              :show-file-list="false"
+            >
+              <i class="el-icon-upload" />
+              <div class="el-upload__text">将音频拖到此处，或<em>点击上传</em></div>
+            </el-upload>
+          </el-form-item>
+          <el-form-item label="描述">
+            <el-input v-model="reportForm.description" type="textarea" rows="4" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="submitReport">提交问题</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
 
+      <!-- 任务中心 -->
+      <el-tab-pane label="任务中心" name="tasks">
+        <el-table :data="taskData" style="width: 100%">
+          <el-table-column prop="taskId" label="任务编号" width="150" />
+          <el-table-column prop="taskType" label="任务类型" width="150" />
+          <el-table-column prop="taskStatus" label="状态" width="120">
+            <template slot-scope="scope">
+              <el-tag :type="getTaskTagType(scope.row.taskStatus)">
+                {{ scope.row.taskStatus }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="description" label="任务描述" />
+        </el-table>
+      </el-tab-pane>
 
-            <el-table :key="tableKey" v-loading="listLoading" :data="list" border fit highlight-current-row
-                style="width: 100%">
-                <el-table-column label="案卷编号" prop="index" align="center" min-width="50">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.index }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷名称" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷来源" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="大类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="小类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷状态" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷描述" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
+      <!-- 采集记录 -->
+      <el-tab-pane label="采集记录" name="records">
+        <el-table :data="recordData" style="width: 100%">
+          <el-table-column prop="recordId" label="记录编号" width="150" />
+          <el-table-column prop="status" label="状态" width="120">
+            <template slot-scope="scope">
+              <el-tag :type="getRecordTagType(scope.row.status)">
+                {{ scope.row.status }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="details" label="记录详情" />
+          <el-table-column label="办理过程">
+            <template slot-scope="scope">
+              <el-button type="text" @click="viewProcess(scope.row.recordId)">查看</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+    </el-tabs>
 
-                <el-table-column label="操作" align="center" min-width="120">
-                    <template slot-scope="{ row }">
-                        <el-button type="primary" size="mini">详情</el-button>
-                        <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
-                        <el-button size="mini" type="danger" @click="handleDelete(row)">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-
-            <!-- 分页 -->
-            <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
-                @pagination="getList" />
-            <!-- 导入 -->
-            <UploadDownExcel ref="UploadDownExcel" :href="href" :down-load-text="downLoadText"
-                @uploadTableList="uploadTableList" />
-            <!-- 新增 -->
-            <Create ref="create" />
-            <!-- 编辑 -->
-            <Edit ref="edit" />
-        </div>
-    </div>
+    <!-- 地图选择对话框 -->
+    <el-dialog title="选择位置" :visible.sync="mapDialogVisible">
+      <p>这里是地图选择组件的内容</p>
+      <el-button type="primary" @click="selectLocation">确定</el-button>
+      <el-button @click="mapDialogVisible = false">取消</el-button>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
-import { getList } from '@/api/aboutDocument'
-import Pagination from '@/components/Pagination'
-import UploadDownExcel from '@/components/UploadDownExcel/index.vue'
-import Create from './components/create.vue'
-import Edit from './components/edit.vue'
-import { levelTypeColor, customerStatusColor } from '@/filters/components/customerType'
 export default {
-    components: {
-        Pagination,
-        UploadDownExcel,
-        Create,
-        Edit,
-    },
-    data() {
-        return {
-            tableKey: 0,
-            list: [],
-            listLoading: true,
-            listQuery: {
-                page: 1,
-                limit: 10,
-                filter: ''
-            },
-            total: 0,
-            href: '/template/默认文件.xlsx',
-            downLoadText: '默认文件.xlsx'
-        }
-    },
-    computed: {},
-    mounted() {
-        this.getList()
-    },
-    methods: {
-        getList() {
-            this.listLoading = true
-            getList().then(res => {
-                this.list = res.items.map((item, index) => {
-                    item.levelTypeColor = levelTypeColor(item.level)
-                    item.customerStatusColor = customerStatusColor(item.status)
-                    return {
-                        ...item,
-                        index: index + 1
-                    }
-                })
-                this.total = res.total
-                this.listLoading = false
-            })
-        },
-        handleFilter() { },
-        // 导入组件弹出
-        handleImport() {
-            this.$refs.UploadDownExcel.show()
-        },
-        // 导入文件
-        uploadTableList(val) { },
-        handleCreate() {
-            this.$refs.create.show()
-        },
-        handleUpdate(val) {
-            this.$refs.edit.show(val)
-        },
-        handleDelete() { },
-        handleDownload() { },
+  data() {
+    return {
+      activeTab: 'report',
+      reportForm: {
+        type: '',
+        subType: '',
+        location: '',
+        photo: null,
+        audio: null,
+        description: ''
+      },
+      taskData: [
+        { taskId: 'T001', taskType: '问题核查', taskStatus: '待处理', description: '检查报告中提到的问题' },
+        { taskId: 'T002', taskType: '问题核实', taskStatus: '已完成', description: '验证市民反映的问题' }
+      ],
+      recordData: [
+        { recordId: 'R001', status: '成功', details: '上报问题详细信息' },
+        { recordId: 'R002', status: '失败', details: '上报问题失败信息' }
+      ],
+      mapDialogVisible: false
     }
+  },
+  methods: {
+    handlePhotoChange(file, fileList) {
+      this.reportForm.photo = URL.createObjectURL(file.raw)
+    },
+    handleAudioChange(file, fileList) {
+      this.reportForm.audio = URL.createObjectURL(file.raw)
+    },
+    submitReport() {
+      this.$message.success('问题已提交')
+    },
+    openMap() {
+      this.mapDialogVisible = true
+    },
+    selectLocation() {
+      this.reportForm.location = ''
+      this.mapDialogVisible = false
+    },
+    viewProcess(recordId) {
+      this.$message.info(`查看记录 ${recordId} 的办理过程`)
+    },
+    getTaskTagType(status) {
+      switch (status) {
+        case '待处理':
+          return 'warning'
+        case '已完成':
+          return 'success'
+        default:
+          return 'info'
+      }
+    },
+    getRecordTagType(status) {
+      switch (status) {
+        case '成功':
+          return 'success'
+        case '失败':
+          return 'danger'
+        default:
+          return 'info'
+      }
+    }
+  }
 }
 </script>
 
-<style lang="less" scoped></style>
+  <style scoped>
+  .city-management {
+    padding: 20px;
+  }
+  </style>

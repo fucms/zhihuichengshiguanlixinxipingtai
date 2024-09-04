@@ -25,9 +25,9 @@ const organizationalRouter = {
       meta: { title: '统计分析' }
     },
     {
-      path: 'alh_roulel',
-      component: () => import('@/views/alh_organizational/roule/index.vue'),
-      name: 'alh_roulel',
+      path: 'screenDisplay',
+      component: () => import('@/views/alh_organizational/screenDisplay/index.vue'),
+      name: 'screenDisplay',
       meta: { title: '大屏展示' }
     }
   ]

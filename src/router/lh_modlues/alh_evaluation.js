@@ -7,21 +7,21 @@ const alh_evaluationRouter = {
   meta: { title: '数据交换子系统', icon: 'el-icon-s-check' },
   children: [
     {
-      path: 'alh_evaluation',
-      component: () => import('@/views/alh_evaluation/index.vue'),
-      name: 'alh_evaluation',
+      path: 'interAndExter',
+      component: () => import('@/views/alh_evaluation/interAndExter/index.vue'),
+      name: 'interAndExter',
       meta: { title: '内外网数据交换模块' }
     },
     {
-      path: 'alh_evaluation',
-      component: () => import('@/views/alh_evaluation/index.vue'),
-      name: 'alh_evaluation',
+      path: 'department',
+      component: () => import('@/views/alh_evaluation/department/index.vue'),
+      name: 'department',
       meta: { title: '部门间数据共享交换模块' }
     },
     {
-      path: 'alh_evaluation',
-      component: () => import('@/views/alh_evaluation/index.vue'),
-      name: 'alh_evaluation',
+      path: 'system',
+      component: () => import('@/views/alh_evaluation/system/index.vue'),
+      name: 'system',
       meta: { title: '系统间数据交换' }
     }
   ]

@@ -1,165 +1,135 @@
 <template>
-    <div class="app-container">
-        <div class="filter-container">
-            <!-- <el-input v-model="listQuery.filter" style="width: 200px" class="filter-item"
-                @keyup.enter.native="handleFilter" /> -->
-            <el-form :inline="true" :model="listQuery" class="demo-form-inline">
-                <el-form-item label="案卷编号">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷编号"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷名称">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷名称"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷来源">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷来源"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-                        搜索
-                    </el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-plus"
-                        @click="handleCreate">新增</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-bottom"
-                        @click="handleImport">导入</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-top"
-                        @click="handleDownload">导出</el-button>
-                </el-form-item>
-            </el-form>
+  <div class="case-dispatch">
+    <el-card>
+      <h2>案卷派遣管理</h2>
 
+      <!-- 案卷列表 -->
+      <el-table :data="caseList" style="width: 100%" @row-click="handleCaseClick">
+        <el-table-column prop="caseId" label="案卷编号" width="120" />
+        <el-table-column prop="caseName" label="案卷名称" width="180" />
+        <el-table-column prop="caseType" label="案卷类型" width="150" />
+        <el-table-column prop="department" label="责任单位" width="200" />
+        <el-table-column prop="severity" label="严重程度" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="getSeverityTagType(scope.row.severity)">{{ scope.row.severity }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="状态" width="100" />
+        <el-table-column prop="description" label="案卷描述" />
+      </el-table>
 
-            <el-table :key="tableKey" v-loading="listLoading" :data="list" border fit highlight-current-row
-                style="width: 100%">
-                <el-table-column label="案卷定位" prop="index" align="center" min-width="50">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.index }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷编号" prop="index" align="center" min-width="50">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.index }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷名称" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷来源" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="大类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="小类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷状态" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷描述" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
+      <!-- 操作按钮 -->
+      <div style="margin: 20px 0;">
+        <el-button type="primary" :disabled="selectedCase === null" @click="autoDispatch">自动派遣</el-button>
+        <el-button type="warning" :disabled="selectedCase === null" @click="manualDispatch">手动派遣</el-button>
+        <el-button type="danger" :disabled="selectedCase === null || selectedCase.severity !== '严重'" @click="emergencyDispatch">紧急预案</el-button>
+      </div>
 
-                <el-table-column label="操作" align="center" min-width="120">
-                    <template slot-scope="{ row }">
-                        <el-button type="primary" size="mini">详情</el-button>
-                        <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
-                        <el-button size="mini" type="danger" @click="handleDelete(row)">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-
-            <!-- 分页 -->
-            <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
-                @pagination="getList" />
-            <!-- 导入 -->
-            <UploadDownExcel ref="UploadDownExcel" :href="href" :down-load-text="downLoadText"
-                @uploadTableList="uploadTableList" />
-            <!-- 新增 -->
-            <Create ref="create" />
-            <!-- 编辑 -->
-            <Edit ref="edit" />
-        </div>
-    </div>
+      <!-- 派遣详情 -->
+      <el-dialog :visible.sync="dispatchDialogVisible" title="派遣详情">
+        <el-form v-if="selectedCase" :model="selectedCase">
+          <el-form-item label="案卷编号" label-width="120px">
+            <el-input v-model="selectedCase.caseId" disabled />
+          </el-form-item>
+          <el-form-item label="案卷名称" label-width="120px">
+            <el-input v-model="selectedCase.caseName" disabled />
+          </el-form-item>
+          <el-form-item label="选择派遣部门" label-width="120px">
+            <el-select v-model="selectedDepartment" placeholder="请选择部门">
+              <el-option v-for="dept in departments" :key="dept" :label="dept" :value="dept" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dispatchDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmDispatch">确认派遣</el-button>
+        </span>
+      </el-dialog>
+    </el-card>
+  </div>
 </template>
 
 <script>
-import { getList } from '@/api/aboutDocument'
-import Pagination from '@/components/Pagination'
-import UploadDownExcel from '@/components/UploadDownExcel/index.vue'
-import Create from './components/create.vue'
-import Edit from './components/edit.vue'
-import { levelTypeColor, customerStatusColor } from '@/filters/components/customerType'
 export default {
-    components: {
-        Pagination,
-        UploadDownExcel,
-        Create,
-        Edit,
-    },
-    data() {
-        return {
-            tableKey: 0,
-            list: [],
-            listLoading: true,
-            listQuery: {
-                page: 1,
-                limit: 10,
-                filter: ''
-            },
-            total: 0,
-            href: '/template/默认文件.xlsx',
-            downLoadText: '默认文件.xlsx'
-        }
-    },
-    computed: {},
-    mounted() {
-        this.getList()
-    },
-    
-    methods: {
-        getList() {
-            this.listLoading = true
-            getList().then(res => {
-                this.list = res.items.map((item, index) => {
-                    item.levelTypeColor = levelTypeColor(item.level)
-                    item.customerStatusColor = customerStatusColor(item.status)
-                    return {
-                        ...item,
-                        index: index + 1
-                    }
-                })
-                this.total = res.total
-                this.listLoading = false
-            })
-        },
-        handleFilter() { },
-        // 导入组件弹出
-        handleImport() {
-            this.$refs.UploadDownExcel.show()
-        },
-        // 导入文件
-        uploadTableList(val) { },
-        handleCreate() {
-            this.$refs.create.show()
-        },
-        handleUpdate(val) {
-            this.$refs.edit.show(val)
-        },
-        handleDelete() { },
-        handleDownload() { },
+  data() {
+    return {
+      caseList: [], // 存放案卷数据的列表
+      selectedCase: null, // 当前选择的案卷
+      departments: ['市政部门', '交通管理部门', '环境保护部门', '消防部门'], // 模拟部门列表
+      selectedDepartment: '', // 当前选择的派遣部门
+      dispatchDialogVisible: false // 派遣详情对话框可见性
     }
+  },
+  created() {
+    this.loadCaseData() // 页面加载时获取案卷数据
+  },
+  methods: {
+    loadCaseData() {
+      // 模拟获取案卷数据
+      this.caseList = [
+        { caseId: '001', caseName: '道路维修', caseType: '市政', department: '市政部门', severity: '中等', status: '待派遣', description: '道路需要修复' },
+        { caseId: '002', caseName: '垃圾清理', caseType: '环卫', department: '环境保护部门', severity: '轻微', status: '待派遣', description: '街道垃圾需要清理' },
+        { caseId: '003', caseName: '火灾隐患', caseType: '消防', department: '消防部门', severity: '严重', status: '待派遣', description: '存在火灾隐患' }
+      ]
+    },
+    handleCaseClick(row) {
+      this.selectedCase = row // 点击选择案卷
+    },
+    getSeverityTagType(severity) {
+      // 根据严重程度返回不同的标签类型
+      switch (severity) {
+        case '轻微':
+          return 'success'
+        case '中等':
+          return 'warning'
+        case '严重':
+          return 'danger'
+        default:
+          return 'info'
+      }
+    },
+    autoDispatch() {
+      // 模拟自动派遣逻辑
+      this.$message.success(`案卷 ${this.selectedCase.caseName} 已自动派遣至 ${this.selectedCase.department}`)
+      this.updateCaseStatus('已派遣')
+    },
+    manualDispatch() {
+      // 手动派遣，显示派遣详情对话框
+      this.dispatchDialogVisible = true
+    },
+    confirmDispatch() {
+      // 确认派遣
+      if (this.selectedDepartment) {
+        this.$message.success(`案卷 ${this.selectedCase.caseName} 已派遣至 ${this.selectedDepartment}`)
+        this.updateCaseStatus('已派遣')
+        this.dispatchDialogVisible = false
+      } else {
+        this.$message.error('请选择派遣部门')
+      }
+    },
+    emergencyDispatch() {
+      // 模拟紧急预案
+      this.$message.error(`案卷 ${this.selectedCase.caseName} 已启动紧急预案`)
+      this.updateCaseStatus('紧急处理')
+    },
+    updateCaseStatus(status) {
+      if (this.selectedCase) {
+        this.selectedCase.status = status
+        this.selectedCase = null // 重置选中状态
+      }
+    }
+  }
 }
 </script>
 
-<style lang="less" scoped></style>
+<style scoped>
+.case-dispatch {
+  padding: 20px;
+}
+.el-card {
+  margin-bottom: 20px;
+}
+.dialog-footer {
+  text-align: right;
+}
+</style>

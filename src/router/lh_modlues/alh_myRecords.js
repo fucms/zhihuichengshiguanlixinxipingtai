@@ -3,25 +3,25 @@ import Layout from '@/layout'
 const myRecordsRouter = {
   path: '/alh_myRecords',
   component: Layout,
-  redirect: '/alh_myRecords/index',
+  redirect: '/addressQuery/index',
   meta: { title: '地理编码子系统', icon: 'el-icon-s-check' },
   children: [
     {
-      path: 'alh_myRecords',
-      component: () => import('@/views/alh_myRecords/index.vue'),
-      name: 'alh_myRecords',
+      path: 'fuzzyQuery',
+      component: () => import('@/views/alh_myRecords/fuzzyQuery/index.vue'),
+      name: 'fuzzyQuery',
       meta: { title: '地址模糊查询定位' }
     },
     {
-      path: 'alh_myRecords',
-      component: () => import('@/views/alh_myRecords/index.vue'),
-      name: 'alh_myRecords',
+      path: 'accurateQuery',
+      component: () => import('@/views/alh_myRecords/accurateQuery/index.vue'),
+      name: 'accurateQuery',
       meta: { title: '地址精确查询定位' }
     },
     {
-      path: 'alh_myRecords',
-      component: () => import('@/views/alh_myRecords/index.vue'),
-      name: 'alh_myRecords',
+      path: 'convertAddress',
+      component: () => import('@/views/alh_myRecords/convertAddress/index.vue'),
+      name: 'convertAddress',
       meta: { title: '空间坐标转换为地址名称' }
     }
   ]

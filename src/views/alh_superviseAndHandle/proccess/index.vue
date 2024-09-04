@@ -1,159 +1,60 @@
 <template>
-    <div class="app-container">
-        <div class="filter-container">
-            <!-- <el-input v-model="listQuery.filter" style="width: 200px" class="filter-item"
-                @keyup.enter.native="handleFilter" /> -->
-            <el-form :inline="true" :model="listQuery" class="demo-form-inline">
-                <el-form-item label="案卷编号">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷编号"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷名称">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷名称"></el-input>
-                </el-form-item>
-                <el-form-item label="案卷来源">
-                    <el-input v-model="listQuery.filter" placeholder="请输入案卷来源"></el-input>
-                </el-form-item>
-                <el-form-item>
-                    <el-button class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-                        搜索
-                    </el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-plus"
-                        @click="handleCreate">新增</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-bottom"
-                        @click="handleImport">导入</el-button>
-                    <el-button class="filter-item" style="margin-left: 10px" type="primary" icon="el-icon-top"
-                        @click="handleDownload">导出</el-button>
-                </el-form-item>
-            </el-form>
-
-
-            <el-table :key="tableKey" v-loading="listLoading" :data="list" border fit highlight-current-row
-                style="width: 100%">
-                <el-table-column label="案卷编号" prop="index" align="center" min-width="50">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.index }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷名称" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷来源" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="大类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="小类" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷状态" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="案卷描述" prop="code" align="center">
-                    <template slot-scope="{ row }">
-                        <span>{{ row.code }}</span>
-                    </template>
-                </el-table-column>
-
-                <el-table-column label="操作" align="center" min-width="120">
-                    <template slot-scope="{ row }">
-                        <el-button type="primary" size="mini">详情</el-button>
-                        <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
-                        <el-button size="mini" type="danger" @click="handleDelete(row)">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-
-            <!-- 分页 -->
-            <pagination v-show="total > 0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit"
-                @pagination="getList" />
-            <!-- 导入 -->
-            <UploadDownExcel ref="UploadDownExcel" :href="href" :down-load-text="downLoadText"
-                @uploadTableList="uploadTableList" />
-            <!-- 新增 -->
-            <Create ref="create" />
-            <!-- 编辑 -->
-            <Edit ref="edit" />
-        </div>
-    </div>
+  <div class="server-data-management">
+    <el-row :gutter="20">
+      <!-- 服务器端数据展示 -->
+      <el-col :span="24">
+        <el-card>
+          <h3>服务器端数据管理</h3>
+          <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="id" label="数据ID" width="120" />
+            <el-table-column prop="timestamp" label="时间戳" width="180" />
+            <el-table-column prop="location" label="位置" width="200" />
+            <el-table-column prop="dataType" label="数据类型" width="150" />
+            <el-table-column prop="dataValue" label="数据值" width="150" />
+            <el-table-column prop="status" label="状态" width="100">
+              <template slot-scope="scope">
+                <el-tag :type="getStatusTagType(scope.row.status)">{{ scope.row.status }}</el-tag>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
 <script>
-import { getList } from '@/api/aboutDocument'
-import Pagination from '@/components/Pagination'
-import UploadDownExcel from '@/components/UploadDownExcel/index.vue'
-import Create from './components/create.vue'
-import Edit from './components/edit.vue'
-import { levelTypeColor, customerStatusColor } from '@/filters/components/customerType'
 export default {
-    components: {
-        Pagination,
-        UploadDownExcel,
-        Create,
-        Edit,
-    },
-    data() {
-        return {
-            tableKey: 0,
-            list: [],
-            listLoading: true,
-            listQuery: {
-                page: 1,
-                limit: 10,
-                filter: ''
-            },
-            total: 0,
-            href: '/template/默认文件.xlsx',
-            downLoadText: '默认文件.xlsx'
-        }
-    },
-    computed: {},
-    mounted() {
-        this.getList()
-    },
-    methods: {
-        getList() {
-            this.listLoading = true
-            getList().then(res => {
-                this.list = res.items.map((item, index) => {
-                    item.levelTypeColor = levelTypeColor(item.level)
-                    item.customerStatusColor = customerStatusColor(item.status)
-                    return {
-                        ...item,
-                        index: index + 1
-                    }
-                })
-                this.total = res.total
-                this.listLoading = false
-            })
-        },
-        handleFilter() { },
-        // 导入组件弹出
-        handleImport() {
-            this.$refs.UploadDownExcel.show()
-        },
-        // 导入文件
-        uploadTableList(val) { },
-        handleCreate() {
-            this.$refs.create.show()
-        },
-        handleUpdate(val) {
-            this.$refs.edit.show(val)
-        },
-        handleDelete() { },
-        handleDownload() { },
+  data() {
+    return {
+      // 静态数据
+      tableData: [
+        { id: '001', timestamp: '2024-08-30 08:00:00', location: '城区东部', dataType: '湿度', dataValue: '85%', status: '正常' },
+        { id: '002', timestamp: '2024-08-30 08:15:00', location: '城区西部', dataType: '温度', dataValue: '30°C', status: '警告' },
+        { id: '003', timestamp: '2024-08-30 08:30:00', location: '城区南部', dataType: '降水量', dataValue: '10mm', status: '正常' },
+        { id: '004', timestamp: '2024-08-30 08:45:00', location: '城区北部', dataType: '风速', dataValue: '5m/s', status: '异常' }
+      ]
     }
+  },
+  methods: {
+    getStatusTagType(status) {
+      switch (status) {
+        case '正常':
+          return 'success'
+        case '警告':
+          return 'warning'
+        case '异常':
+          return 'danger'
+        default:
+          return 'info'
+      }
+    }
+  }
 }
 </script>
 
-<style lang="less" scoped></style>
+  <style scoped>
+  .server-data-management {
+    padding: 20px;
+  }
+  </style>
